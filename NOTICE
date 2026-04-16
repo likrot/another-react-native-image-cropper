@@ -1,0 +1,36 @@
+another-react-native-image-cropper
+Copyright (c) 2026 likrot
+
+This product bundles SVG icon path data from Lucide
+(https://lucide.dev), which is available under the ISC license.
+The icons used are: x, check, move, square-dashed, square, circle,
+heart, star — see src/constants/icons.ts.
+
+ISC License
+
+Copyright (c) 2024 Lucide Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+Lucide is a fork of Feather Icons, originally licensed under the MIT
+License (https://github.com/feathericons/feather/blob/master/LICENSE).
+
+---
+
+The example app (`example/`) hotlinks two sample photos from Lorem
+Picsum (https://picsum.photos), which proxies Unsplash
+(https://unsplash.com) under the Unsplash License. Attribution is not
+required by the license; credited here as a courtesy:
+
+- Landscape (id 1011) — Roberto Nickson (https://unsplash.com/photos/7BjmDICVloE)
+- Portrait (id 156) — Christopher Sardegna (https://unsplash.com/photos/iRyGmA_no2Q)

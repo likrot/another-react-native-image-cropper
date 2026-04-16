@@ -1,0 +1,197 @@
+{
+  "name": "another-react-native-image-cropper",
+  "version": "0.1.0",
+  "description": "Shape-aware, gesture-first image crop UI component for React Native",
+  "main": "./lib/module/index.js",
+  "types": "./lib/typescript/src/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./lib/typescript/src/index.d.ts",
+      "default": "./lib/module/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib",
+    "NOTICE",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "scripts": {
+    "example": "yarn workspace another-react-native-image-cropper-example",
+    "test": "jest",
+    "typecheck": "tsc",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,tsx}\"",
+    "clean": "del-cli example/ios/build example/android/build example/android/app/build lib",
+    "prepare": "lefthook install && bob build",
+    "release": "release-it --only-version"
+  },
+  "keywords": [
+    "react-native",
+    "image",
+    "cropper",
+    "image-cropper",
+    "crop",
+    "gesture-handler",
+    "reanimated",
+    "shape-mask",
+    "ui-component"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likrot/another-react-native-image-cropper.git"
+  },
+  "author": "likrot <likrot@eblank.eu> (https://github.com/likrot)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/likrot/another-react-native-image-cropper/issues"
+  },
+  "homepage": "https://github.com/likrot/another-react-native-image-cropper#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@eslint/compat": "^2.0.3",
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "9.39.4",
+    "@evilmartians/lefthook": "^1.12.3",
+    "@react-native-community/image-editor": "^4.3.0",
+    "@react-native/babel-preset": "0.84.1",
+    "@react-native/eslint-config": "0.84.1",
+    "@react-native/metro-config": "0.84.1",
+    "@release-it/conventional-changelog": "^10.0.1",
+    "@testing-library/react-native": "^13.2.0",
+    "@types/jest": "^29.5.14",
+    "@types/react": "^19.2.0",
+    "commitlint": "^19.8.1",
+    "del-cli": "^7.0.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-ft-flow": "^3.0.11",
+    "eslint-plugin-prettier": "^5.5.5",
+    "hermes-eslint": "^0.28.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.8.1",
+    "react": "19.2.3",
+    "react-native": "0.84.1",
+    "react-native-builder-bob": "^0.41.0",
+    "react-native-gesture-handler": "^2.30.0",
+    "react-native-reanimated": "^4.3.0",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-svg": "^15.0.0",
+    "react-native-worklets": "~0.8.0",
+    "react-test-renderer": "19.2.3",
+    "release-it": "^19.0.4",
+    "typescript": "^5.9.2"
+  },
+  "peerDependencies": {
+    "@react-native-community/image-editor": ">=4.0.0",
+    "@shopify/react-native-skia": ">=2.0.0",
+    "react": "*",
+    "react-native": ">=0.71",
+    "react-native-gesture-handler": ">=2.0.0",
+    "react-native-reanimated": ">=3.0.0",
+    "react-native-safe-area-context": ">=4.0.0",
+    "react-native-svg": ">=13.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@shopify/react-native-skia": {
+      "optional": true
+    }
+  },
+  "workspaces": [
+    "example"
+  ],
+  "resolutions": {
+    "_comment": "@react-native/eslint-config 0.84.1 pulls eslint-plugin-ft-flow@2.0.3 whose peer pins eslint to ^8.1.0. Force the 3.x line (peer includes eslint 9) so the single version resolves cleanly. We use TypeScript, not Flow, so the plugin itself is effectively unused.",
+    "eslint-plugin-ft-flow": "^3.0.11"
+  },
+  "packageManager": "yarn@4.11.0",
+  "dependenciesMeta": {
+    "@evilmartians/lefthook": {
+      "built": true
+    },
+    "@shopify/react-native-skia": {
+      "built": true
+    }
+  },
+  "jest": {
+    "preset": "react-native",
+    "resolver": "react-native-worklets/jest/resolver",
+    "setupFiles": [
+      "<rootDir>/node_modules/react-native-gesture-handler/jestSetup.js",
+      "<rootDir>/jest.setup.ts"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/node_modules",
+      "<rootDir>/lib/"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?|react-native-reanimated|react-native-gesture-handler|react-native-svg|react-native-safe-area-context|react-native-worklets)/)"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true
+    },
+    "hooks": {
+      "before:init": "./cleanup.sh"
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": {
+          "name": "angular"
+        }
+      }
+    }
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  },
+  "create-react-native-library": {
+    "type": "library",
+    "languages": "js",
+    "version": "0.58.2"
+  }
+}
