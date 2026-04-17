@@ -1,6 +1,6 @@
 {
   "name": "another-react-native-image-cropper",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shape-aware, gesture-first image crop UI component for React Native",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
