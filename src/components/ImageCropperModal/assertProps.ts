@@ -57,4 +57,9 @@ export const assertProps = (props: ImageCropperModalProps): void => {
       `${LOG_PREFIX} framePadding must be in [0, 0.5) — got ${props.framePadding}`
     );
   }
+  if (props.outputMask !== undefined && props.outputCutout !== undefined) {
+    throw new Error(
+      `${LOG_PREFIX} outputMask and outputCutout are mutually exclusive — set one or the other`
+    );
+  }
 };

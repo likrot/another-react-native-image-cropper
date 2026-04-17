@@ -187,6 +187,48 @@ returned `uri` is a regular `file://` path.
   <em>End-to-end: heart crop → masked PNG with transparent fill + white stroke.</em>
 </div>
 
+### Shape-cutout output
+
+Use `outputCutout` when you want the PNG itself to be shape-sized —
+trimmed to the shape's tight bounding box, not the framed crop rect.
+Distinct from `outputMask` (which keeps the crop-rect dimensions);
+mutually exclusive with it.
+
+```tsx
+<ImageCropperModal
+  // …required props
+  shapes={builtInShapes}
+  defaultShape="heart"
+  outputCutout={{
+    color: 'transparent',                   // fill outside the silhouette
+    stroke: { color: '#FFFFFF', width: 2 }, // optional outline
+    padding: 4,                             // optional extra margin
+  }}
+  onConfirm={(r) => {
+    // r.uri is `data:image/png;base64,...`.
+    // Render directly:  <Image source={{ uri: r.uri }} />
+  }}
+/>
+```
+
+Skip the base64 step entirely by providing `onBytes` — the library
+hands you the composited PNG buffer, and whatever URI you return
+becomes `CropResult.uri`:
+
+```tsx
+outputCutout={{
+  onBytes: async (bytes, { width, height }) => {
+    const path = `${RNFS.CachesDirectoryPath}/crop-${Date.now()}.png`;
+    await RNFS.writeFile(path, Buffer.from(bytes).toString('base64'), 'base64');
+    return `file://${path}`;
+  },
+}}
+```
+
+`outputCutout` requires `@shopify/react-native-skia` — the same
+optional peer `outputMask` uses. No-op for the free-aspect rectangle
+and for custom shapes that use a function-form mask.
+
 ## Props
 
 ### Required
@@ -220,8 +262,9 @@ returned `uri` is a regular `file://` path.
 | --- | --- | --- |
 | `maxOutputSize?` | `number` | Cap on the longer edge of the cropped image (px). |
 | `outputQuality?` | `number` | JPEG quality in `[0, 1]`. Ignored for PNG. |
-| `outputFormat?` | `'jpeg' \| 'png'` | Output file format for the rect crop. Defaults to `'jpeg'`. Forced to PNG when `outputMask` is set. |
-| `outputMask?` | `OutputMask` | Post-process the crop with a shape-mask composite. Fills pixels outside the active shape's path with `color` (default transparent), optionally strokes the silhouette. Returns a base64 PNG data URI in `CropResult.uri`. Requires `@shopify/react-native-skia`. No-op for the free rectangle. |
+| `outputFormat?` | `'jpeg' \| 'png'` | Output file format for the rect crop. Defaults to `'jpeg'`. Forced to PNG when `outputMask` or `outputCutout` is set. |
+| `outputMask?` | `OutputMask` | Post-process the crop with a shape-mask composite. Full crop-rect size; pixels outside the shape get `color` (default transparent), optional `stroke` on the silhouette. Returns a base64 PNG data URI. Requires `@shopify/react-native-skia`. No-op for the free rectangle. |
+| `outputCutout?` | `OutputCutout` | Post-process the crop into a PNG trimmed to the shape's tight bbox, alpha-transparent outside the silhouette. Same `color` / `stroke` knobs as `outputMask` plus `padding` and an optional `onBytes` callback that hands the raw PNG buffer to your persistence layer. Mutually exclusive with `outputMask`. No-op for the free rectangle. Requires `@shopify/react-native-skia`. |
 | `onError?` | `(err: unknown) => void` | Called when the underlying crop call rejects. |
 
 ### Customization
@@ -290,18 +333,10 @@ one:
 - [ ] **Custom shapes via `defineShape()`** - the `Shape` protocol is already
   public; the helper would be a thin validator + registry wrapper over
   what you can already pass through `shapes` today.
-- [ ] **Native crop via the optional compositing dep** - use the same
-  image-processing dep currently driving `outputMask` to do the rect
-  crop too, so consumers can opt out of `@react-native-community/image-editor`
-  entirely and unlock effects, filters, and multi-layer composition in
-  one pipeline.
 - [ ] **Free-form drawing mode** - user traces a custom crop boundary by hand.
 - [ ] **Rotation** - rotate the source image before cropping.
 - [ ] **Aspect ratio presets** - 16:9, 4:3, etc., independent of shapes.
-- [ ] **Consumer-supplied persistence hook** - pass a callback to receive
-  the composited bytes instead of the default base64 data URI, so
-  integrators can route the output straight into their own fs / upload
-  / cache pipeline.
+- [ ] **Better coverage for areas allowing shape manipulation** - improve hit regions and interaction zones for more precise adjustments.
 
 ## Credits
 

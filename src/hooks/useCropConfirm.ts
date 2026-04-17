@@ -3,8 +3,15 @@ import { useCallback, useState } from 'react';
 
 import { LOG_PREFIX } from '../constants/library';
 import { isOutputMaskableShape, type Shape } from '../shapes';
-import type { CropRect, CropResult, OutputFormat, OutputMask } from '../types';
+import type {
+  CropRect,
+  CropResult,
+  OutputCutout,
+  OutputFormat,
+  OutputMask,
+} from '../types';
 import { computeDisplaySize } from '../utils/cropMath';
+import { applyOutputCutout } from '../utils/cutoutOutput';
 import { applyOutputMask } from '../utils/maskOutput';
 
 export interface UseCropConfirmArgs {
@@ -16,6 +23,8 @@ export interface UseCropConfirmArgs {
   outputFormat: OutputFormat;
   /** Skia mask-composite options, or `undefined` to skip the post-process step. */
   outputMask: OutputMask | undefined;
+  /** Skia cutout options (tight-bbox shaped PNG), or `undefined` to skip. Mutually exclusive with `outputMask`. */
+  outputCutout: OutputCutout | undefined;
   /** JPEG quality in `[0, 1]`. Ignored for PNG. */
   outputQuality: number;
   /** Longest-edge cap on the cropped output, in pixels. */
@@ -42,15 +51,17 @@ export interface UseCropConfirmReturn {
 /**
  * Orchestrates the confirmation pipeline: native rect crop via
  * `@react-native-community/image-editor`, then an optional Skia
- * shape-mask composite when `outputMask` is set on a non-rectangular
- * shape. Owns the `cropping` / `error` UI state so the modal can
- * stay focused on layout and gesture composition.
+ * post-process — either `outputMask` (full-rect mask) or
+ * `outputCutout` (tight-bbox shape). Owns the `cropping` / `error`
+ * UI state so the modal can stay focused on layout and gesture
+ * composition.
  */
 export const useCropConfirm = ({
   sourceUri,
   shape,
   outputFormat,
   outputMask,
+  outputCutout,
   outputQuality,
   maxOutputSize,
   onConfirm,
@@ -66,13 +77,22 @@ export const useCropConfirm = ({
       setError(null);
       try {
         const displaySize = computeDisplaySize(rect.size, maxOutputSize);
-        const maskablePath =
-          outputMask && isOutputMaskableShape(shape)
-            ? (shape!.mask as string)
+        // `outputMask` and `outputCutout` are mutually exclusive
+        // (enforced in assertProps) and both require a non-rect
+        // string-path shape. Narrow to whichever is active (or null).
+        const shapedPath = isOutputMaskableShape(shape)
+          ? (shape!.mask as string)
+          : null;
+        const activeMask =
+          shapedPath !== null && outputMask !== undefined ? outputMask : null;
+        const activeCutout =
+          shapedPath !== null && outputCutout !== undefined
+            ? outputCutout
             : null;
-        // Mask output is always PNG — alpha channel required for
-        // transparent cutouts.
-        const format: OutputFormat = maskablePath ? 'png' : outputFormat;
+        // Skia post-process always emits PNG — alpha channel required
+        // for the cutout / transparent-mask regions.
+        const format: OutputFormat =
+          activeMask !== null || activeCutout !== null ? 'png' : outputFormat;
         const rectResult = await ImageEditor.cropImage(sourceUri, {
           offset: rect.offset,
           size: rect.size,
@@ -81,13 +101,20 @@ export const useCropConfirm = ({
           quality: outputQuality,
         });
 
-        if (maskablePath && outputMask) {
+        if (activeMask !== null) {
           const masked = await applyOutputMask({
             sourceUri: rectResult.uri,
-            shapePath: maskablePath,
-            mask: outputMask,
+            shapePath: shapedPath!,
+            mask: activeMask,
           });
           onConfirm(masked);
+        } else if (activeCutout !== null) {
+          const cut = await applyOutputCutout({
+            sourceUri: rectResult.uri,
+            shapePath: shapedPath!,
+            cutout: activeCutout,
+          });
+          onConfirm(cut);
         } else {
           onConfirm({
             uri: rectResult.uri,
@@ -108,6 +135,7 @@ export const useCropConfirm = ({
       shape,
       outputFormat,
       outputMask,
+      outputCutout,
       outputQuality,
       maxOutputSize,
       onConfirm,
