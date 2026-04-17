@@ -16,6 +16,7 @@ export type {
   FrameStyle,
   HandleStyle,
   ImageCropperHandle,
+  OutputCutout,
   OutputFormat,
   OutputMask,
   ToolbarPosition,

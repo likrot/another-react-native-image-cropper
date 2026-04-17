@@ -29,6 +29,15 @@ jest.mock('../utils/maskOutput', () => ({
   }),
 }));
 
+// Same for the cutout helper.
+jest.mock('../utils/cutoutOutput', () => ({
+  applyOutputCutout: jest.fn().mockResolvedValue({
+    uri: 'data:image/png;base64,CUT',
+    width: 80,
+    height: 72,
+  }),
+}));
+
 const mockedCropImage = ImageEditor.cropImage as jest.Mock;
 
 const labels: ImageCropperLabels = {
@@ -158,6 +167,25 @@ describe('ImageCropperModal', () => {
       )
     ).toThrow(/sourceUri/);
     consoleSpy.mockRestore();
+  });
+
+  it('does not assert source props when visible is false', () => {
+    // Consumers commonly mount the modal with visible={false} and
+    // placeholder source props until the user picks an image. The
+    // library must not throw in that pre-image state.
+    expect(() =>
+      render(
+        <ImageCropperModal
+          visible={false}
+          sourceUri=""
+          sourceWidth={0}
+          sourceHeight={0}
+          labels={labels}
+          onConfirm={jest.fn()}
+          onCancel={jest.fn()}
+        />
+      )
+    ).not.toThrow();
   });
 
   describe('modes configuration', () => {
@@ -536,6 +564,64 @@ describe('ImageCropperModal', () => {
         width: 100,
         height: 100,
       });
+    });
+
+    it('forces PNG format and delegates to applyOutputCutout when outputCutout is set', async () => {
+      mockedCropImage.mockResolvedValueOnce({
+        uri: 'file:///tmp/cropped.png',
+        width: 100,
+        height: 100,
+      });
+      const { applyOutputCutout } = jest.requireMock('../utils/cutoutOutput');
+      (applyOutputCutout as jest.Mock).mockClear();
+      const onConfirm = jest.fn();
+      const { getByLabelText } = renderModal({
+        shapes: [heartShape, rectangleShape],
+        defaultShape: 'heart',
+        outputFormat: 'jpeg', // cutout should override to PNG
+        outputCutout: { color: 'transparent', padding: 4 },
+        onConfirm,
+      });
+      fireEvent.press(getByLabelText(labels.confirm));
+      await waitFor(() => expect(onConfirm).toHaveBeenCalled());
+      expect(mockedCropImage.mock.calls[0]?.[1]).toEqual(
+        expect.objectContaining({ format: 'png' })
+      );
+      expect(applyOutputCutout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sourceUri: 'file:///tmp/cropped.png',
+          shapePath: heartShape.mask,
+          cutout: { color: 'transparent', padding: 4 },
+        })
+      );
+      expect(onConfirm).toHaveBeenCalledWith({
+        uri: 'data:image/png;base64,CUT',
+        width: 80,
+        height: 72,
+      });
+    });
+
+    it('throws when outputMask and outputCutout are both set', () => {
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      expect(() =>
+        render(
+          <ImageCropperModal
+            visible
+            sourceUri="file:///tmp/source.jpg"
+            sourceWidth={100}
+            sourceHeight={100}
+            labels={labels}
+            shapes={[heartShape]}
+            outputMask={{ color: 'transparent' }}
+            outputCutout={{ color: 'transparent' }}
+            onConfirm={jest.fn()}
+            onCancel={jest.fn()}
+          />
+        )
+      ).toThrow(/mutually exclusive/);
+      consoleSpy.mockRestore();
     });
 
     it('throws when framePadding is out of range', () => {

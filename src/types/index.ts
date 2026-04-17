@@ -29,13 +29,19 @@ export interface CropRect {
 /** Result delivered to `onConfirm` once the native crop finishes. */
 export interface CropResult {
   /**
-   * Cropped image URI. For standard crops this is a `file://` path
-   * written by `@react-native-community/image-editor`. When
-   * `outputMask` is set on `ImageCropperModal`, it's a base64 data URI
-   * (`data:image/png;base64,...`) — render it directly in `<Image>`, or
-   * strip the prefix and hand the base64 string to any fs library
-   * (`react-native-fs`, `react-native-blob-util`, `expo-file-system`)
-   * to persist as a file.
+   * Cropped image URI. Three possible forms:
+   *
+   * - **`file://…`** — default. Path written by
+   *   `@react-native-community/image-editor` for a standard rect crop.
+   * - **`data:image/png;base64,…`** — when `outputMask` is set, or
+   *   when `outputCutout` is set without an `onBytes` callback. Render
+   *   directly in `<Image>`, or strip the prefix and hand the base64
+   *   string to any fs library (`react-native-fs`,
+   *   `react-native-blob-util`, `expo-file-system`) to persist as a
+   *   file.
+   * - **Consumer-supplied string** — when `outputCutout.onBytes` is
+   *   set, whatever string the callback returns becomes this `uri`
+   *   (commonly a `file://` to a path the consumer wrote themselves).
    */
   uri: string;
   width: number;
@@ -66,6 +72,46 @@ export interface OutputMask {
     /** Width in output pixels. Default `1`. */
     width?: number;
   };
+}
+
+/**
+ * Post-crop shape-cutout options. Produces a PNG trimmed to the
+ * active shape's tight bounding box, alpha-transparent outside the
+ * silhouette. Distinct from `OutputMask`, which keeps the full crop
+ * rect and only paints non-shape pixels.
+ *
+ * No-op for the free-aspect rectangle shape and for function-form
+ * custom shapes (no SVG path to introspect). Requires
+ * `@shopify/react-native-skia` as an optional peer dependency.
+ */
+export interface OutputCutout {
+  /**
+   * Fill color for pixels outside the shape silhouette but inside
+   * the tight bbox. Defaults to `'transparent'`. Accepts any
+   * RN-compatible color string — same rules as `OutputMask.color`.
+   */
+  color?: string;
+  /** Optional stroke drawn on the shape silhouette. */
+  stroke?: {
+    color: string;
+    /** Width in output pixels. Default `1`. */
+    width?: number;
+  };
+  /** Extra transparent padding (px) around the tight bbox. Default `0`. */
+  padding?: number;
+  /**
+   * Optional persistence hook. When set, the library hands the
+   * composited PNG bytes to the callback instead of emitting a
+   * base64 data URI; the string you return becomes `CropResult.uri`.
+   * Use this to write the file yourself (RNFS, expo-file-system,
+   * blob-util, …), upload, or cache without a base64 decode step.
+   *
+   * When absent, `CropResult.uri` is `data:image/png;base64,…`.
+   */
+  onBytes?: (
+    bytes: Uint8Array,
+    meta: { width: number; height: number; format: 'png' }
+  ) => Promise<string> | string;
 }
 
 /** Output file format for the native rect crop. `outputMask` forces PNG regardless. */

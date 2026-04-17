@@ -131,6 +131,17 @@ const CONFIGS = {
     defaultShape: 'circle',
     outputMask: { color: '#1A1A1A' },
   },
+  // Shape-cutout output — the PNG is trimmed to the heart's tight
+  // bbox instead of the full crop rect. Tighter output, same alpha.
+  'cutout-heart': {
+    shapes: builtInShapes,
+    defaultShape: 'heart',
+    outputCutout: {
+      color: 'transparent',
+      stroke: { color: '#FFFFFF', width: 2 },
+      padding: 4,
+    },
+  },
 } as const satisfies Record<string, Config>;
 
 type ConfigKey = keyof typeof CONFIGS;
@@ -314,6 +325,14 @@ export default function App() {
             onPress={() => launch('mask-solid')}
           >
             <Text style={styles.buttonText}>Mask: solid fill</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.row}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => launch('cutout-heart')}
+          >
+            <Text style={styles.buttonText}>Cutout: heart (tight bbox)</Text>
           </TouchableOpacity>
         </View>
 

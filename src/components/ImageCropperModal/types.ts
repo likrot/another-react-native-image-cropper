@@ -8,6 +8,7 @@ import type {
   CropResult,
   FrameStyle,
   HandleStyle,
+  OutputCutout,
   OutputFormat,
   OutputMask,
   ToolbarPosition,
@@ -123,6 +124,15 @@ export interface ImageCropperModalProps {
    * dependency.
    */
   outputMask?: OutputMask;
+  /**
+   * Post-process the crop into a PNG trimmed to the active shape's
+   * tight bounding box, alpha-transparent outside the silhouette —
+   * for avatars, stickers, etc. Distinct from `outputMask` (which
+   * keeps the full crop-rect size). Mutually exclusive with
+   * `outputMask`. No-op when the active shape is rectangle or a
+   * function-form mask. Requires `@shopify/react-native-skia`.
+   */
+  outputCutout?: OutputCutout;
 
   /** UI copy. The library is i18n-agnostic — pass your own translated strings here. */
   labels: ImageCropperLabels;
