@@ -8,6 +8,15 @@ import type { ImageCropperModalProps } from './types';
  * the top of `ImageCropperModal`.
  */
 export const assertProps = (props: ImageCropperModalProps): void => {
+  if (
+    props.visible === undefined ||
+    props.visible === null ||
+    props.visible === false
+  ) {
+    // Don't throw when not visible, since some props are only required when visible
+    return;
+  }
+
   if (!props.sourceUri) {
     throw new Error(`${LOG_PREFIX} sourceUri is required`);
   }
