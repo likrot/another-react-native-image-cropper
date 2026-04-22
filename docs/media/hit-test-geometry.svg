@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Pan-Zoom hit-test geometry for the three non-rectangular built-in
+  shapes. Cyan = the Lucide SVG silhouette; coloured overlays = the
+  closed-form `pointInShape` worklet region the crop gesture tests
+  against. All drawn in the 24-unit Lucide viewBox, scaled up for
+  readability. Rendered directly in README.md.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="960" height="420" fill="#0f1115"/>
+
+  <text x="480" y="30" text-anchor="middle" fill="#e8ecf1" font-size="16" font-weight="600">Pan-Zoom hit-test geometry · cyan = Lucide silhouette · overlay = pointInShape region</text>
+
+  <!-- ================= CIRCLE ================= -->
+  <g transform="translate(40 60)">
+    <text x="140" y="18" text-anchor="middle" fill="#e8ecf1" font-size="14" font-weight="600">Circle</text>
+    <text x="140" y="36" text-anchor="middle" fill="#8a93a3" font-size="11">disc · r = (10/24) · min(w, h)</text>
+
+    <g transform="translate(20 56) scale(10.4)">
+      <!-- grid lines (every 4 units) -->
+      <g stroke="#2a2f3a" stroke-width="0.04" fill="none">
+        <path d="M0 0 H24 M0 4 H24 M0 8 H24 M0 12 H24 M0 16 H24 M0 20 H24 M0 24 H24"/>
+        <path d="M0 0 V24 M4 0 V24 M8 0 V24 M12 0 V24 M16 0 V24 M20 0 V24 M24 0 V24"/>
+      </g>
+      <!-- bbox -->
+      <rect x="0" y="0" width="24" height="24" fill="none" stroke="#4a5263" stroke-width="0.08" stroke-dasharray="0.5 0.3"/>
+      <!-- hit region -->
+      <circle cx="12" cy="12" r="10" fill="rgba(167,139,250,0.22)" stroke="#a78bfa" stroke-width="0.14"/>
+      <!-- silhouette -->
+      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 1 0 0-20" fill="none" stroke="#7dd3fc" stroke-width="0.2"/>
+      <!-- centre marker + radius ray -->
+      <circle cx="12" cy="12" r="0.28" fill="#f472b6"/>
+      <line x1="12" y1="12" x2="22" y2="12" stroke="#f472b6" stroke-width="0.12"/>
+      <text x="17" y="11.3" fill="#f472b6" font-size="1.3" font-family="ui-monospace, Menlo, monospace">r=10</text>
+      <text x="12.5" y="13.8" fill="#e8ecf1" font-size="1.1" font-family="ui-monospace, Menlo, monospace">(12,12)</text>
+    </g>
+  </g>
+
+  <!-- ================= HEART ================= -->
+  <g transform="translate(340 60)">
+    <text x="140" y="18" text-anchor="middle" fill="#e8ecf1" font-size="14" font-weight="600">Heart</text>
+    <text x="140" y="36" text-anchor="middle" fill="#8a93a3" font-size="11">lobes ∪ V-triangle · r=5.5 at (7.5, 8.5) &amp; (16.5, 8.5)</text>
+
+    <g transform="translate(20 56) scale(10.4)">
+      <g stroke="#2a2f3a" stroke-width="0.04" fill="none">
+        <path d="M0 0 H24 M0 4 H24 M0 8 H24 M0 12 H24 M0 16 H24 M0 20 H24 M0 24 H24"/>
+        <path d="M0 0 V24 M4 0 V24 M8 0 V24 M12 0 V24 M16 0 V24 M20 0 V24 M24 0 V24"/>
+      </g>
+      <rect x="0" y="0" width="24" height="24" fill="none" stroke="#4a5263" stroke-width="0.08" stroke-dasharray="0.5 0.3"/>
+      <!-- hit regions -->
+      <circle cx="7.5" cy="8.5" r="5.5" fill="rgba(52,211,153,0.2)" stroke="#34d399" stroke-width="0.12"/>
+      <circle cx="16.5" cy="8.5" r="5.5" fill="rgba(52,211,153,0.2)" stroke="#34d399" stroke-width="0.12"/>
+      <polygon points="2,8.5 22,8.5 12,21" fill="rgba(251,191,36,0.26)" stroke="#fbbf24" stroke-width="0.12"/>
+      <!-- silhouette -->
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="none" stroke="#7dd3fc" stroke-width="0.22"/>
+      <!-- anchors -->
+      <g fill="#f472b6">
+        <circle cx="7.5" cy="8.5" r="0.22"/>
+        <circle cx="16.5" cy="8.5" r="0.22"/>
+        <circle cx="12" cy="21" r="0.22"/>
+      </g>
+      <text x="12.5" y="22.2" fill="#fbbf24" font-size="1.0" font-family="ui-monospace, Menlo, monospace">(12, 21)</text>
+      <text x="0.3" y="8.1" fill="#64748b" font-size="0.9" font-family="ui-monospace, Menlo, monospace">y=8.5</text>
+    </g>
+  </g>
+
+  <!-- ================= STAR ================= -->
+  <g transform="translate(640 60)">
+    <text x="140" y="18" text-anchor="middle" fill="#e8ecf1" font-size="14" font-weight="600">Star</text>
+    <text x="140" y="36" text-anchor="middle" fill="#8a93a3" font-size="11">10-vertex even-odd ray-cast · outer r≈10, inner r≈6</text>
+
+    <g transform="translate(20 56) scale(10.4)">
+      <g stroke="#2a2f3a" stroke-width="0.04" fill="none">
+        <path d="M0 0 H24 M0 4 H24 M0 8 H24 M0 12 H24 M0 16 H24 M0 20 H24 M0 24 H24"/>
+        <path d="M0 0 V24 M4 0 V24 M8 0 V24 M12 0 V24 M16 0 V24 M20 0 V24 M24 0 V24"/>
+      </g>
+      <rect x="0" y="0" width="24" height="24" fill="none" stroke="#4a5263" stroke-width="0.08" stroke-dasharray="0.5 0.3"/>
+      <!-- reference radii -->
+      <circle cx="12" cy="12.5" r="10.2" fill="none" stroke="#475569" stroke-width="0.05" stroke-dasharray="0.3 0.3"/>
+      <circle cx="12" cy="12.5" r="6.2" fill="none" stroke="#475569" stroke-width="0.05" stroke-dasharray="0.3 0.3"/>
+      <!-- hit region: 10-vertex polygon -->
+      <polygon
+        points="12,2.295 15.583,7.554 21.693,9.342 17.799,14.371 17.99,20.73 12,18.582 6.011,20.73 6.202,14.372 2.307,9.342 8.418,7.554"
+        fill="rgba(167,139,250,0.22)"
+        stroke="#a78bfa"
+        stroke-width="0.14"
+      />
+      <!-- silhouette -->
+      <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" fill="none" stroke="#7dd3fc" stroke-width="0.22"/>
+      <!-- vertex dots -->
+      <g fill="#f472b6">
+        <circle cx="12" cy="2.295" r="0.22"/>
+        <circle cx="15.583" cy="7.554" r="0.2"/>
+        <circle cx="21.693" cy="9.342" r="0.22"/>
+        <circle cx="17.799" cy="14.371" r="0.2"/>
+        <circle cx="17.99" cy="20.73" r="0.22"/>
+        <circle cx="12" cy="18.582" r="0.2"/>
+        <circle cx="6.011" cy="20.73" r="0.22"/>
+        <circle cx="6.202" cy="14.372" r="0.2"/>
+        <circle cx="2.307" cy="9.342" r="0.22"/>
+        <circle cx="8.418" cy="7.554" r="0.2"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= LEGEND ================= -->
+  <g transform="translate(40 390)" font-size="12" fill="#cbd5e1">
+    <rect x="0" y="-8" width="12" height="10" fill="#7dd3fc"/>
+    <text x="18" y="1">Lucide silhouette</text>
+
+    <rect x="150" y="-8" width="12" height="10" fill="#a78bfa"/>
+    <text x="168" y="1">pointInShape region (circle / star)</text>
+
+    <rect x="400" y="-8" width="12" height="10" fill="#34d399"/>
+    <text x="418" y="1">heart lobes</text>
+
+    <rect x="510" y="-8" width="12" height="10" fill="#fbbf24"/>
+    <text x="528" y="1">heart V-triangle</text>
+
+    <rect x="640" y="-8" width="12" height="10" fill="#f472b6"/>
+    <text x="658" y="1">key vertices / anchors</text>
+  </g>
+</svg>

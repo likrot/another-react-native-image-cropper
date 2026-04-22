@@ -179,12 +179,19 @@ export interface ImageCropperModalProps {
   /** Styling overrides for the draw-mode corner handles. */
   handleStyle?: HandleStyle;
   /**
-   * Development hint. When `true`, the Pan-Zoom mode's dim-area gesture
-   * zones render with tinted backgrounds so their hit regions are
-   * visible during integration testing. Default `false` — ship
-   * production apps with this off (or simply omitted).
+   * Development visualization for gesture hit regions. The Pan-Zoom
+   * overlay is loaded behind a `__DEV__` guard, so release bundles
+   * strip it and this prop is a silent no-op in production.
+   *
+   * - `false` / omitted — off.
+   * - `true` / `'tint'` — amber tint in the area outside the shape
+   *   silhouette (Pan-Zoom), and a tinted rect-interior move handle
+   *   (Draw). One masked `<Rect>` per region; cheap.
+   * - `'grid'` — tint plus a 15×15 grid sampling
+   *   `Shape.pointInShape(...)` as green (inside) / red (outside)
+   *   dots. Useful for verifying a custom shape's hit-test.
    */
-  debug?: boolean;
+  debug?: boolean | 'tint' | 'grid';
   /**
    * Replace the entire toolbar. Receives state + handlers. Bypasses the
    * theme / icons / toolbarPosition machinery — you're on your own.

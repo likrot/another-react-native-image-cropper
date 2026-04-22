@@ -1,66 +1,45 @@
 /**
- * Shape-shaped dim overlay. One outer `<Svg>` pinned to the container's
- * size and viewBox; a `<G transform>` translates + scales the shape
- * path from its native 24×24 viewBox into the frame rectangle.
+ * Shape-shaped dim overlay for the non-animated paths (free-aspect
+ * static shape in Pan-Zoom, static configs with numeric frame coords).
+ * A `<G transform>` scales the shape path from its native 24×24
+ * viewBox into the frame rectangle; the dim rect uses the shape as a
+ * cutout mask.
  *
- * Two input shapes — numeric frame coords (static) or Reanimated
- * shared values (animated) — select between a plain `<G>` and an
- * animated one driven via `useAnimatedProps`. Animating a `<G
- * transform>` rather than nesting an `<Svg x y w h>` is intentional:
- * `useAnimatedProps` on a nested Svg's x/y/width/height doesn't apply
- * reliably on iOS, leaving the mask off-target.
- *
- * Rendered only for non-rectangular shapes — rectangle keeps the
- * 4-rect dim overlay, which is cheaper and visually identical.
+ * Rendered only for non-rectangular shapes — rectangle and `fillsBbox`
+ * shapes use the four-rectangle `AnimatedDimOverlay` / `StaticDimOverlay`
+ * path, which is cheaper and visually identical. Animated shape-aware
+ * dim (Pan-Zoom resizable, Draw mode) uses `ShapeCutoutLayer` instead.
  */
 
 import React from 'react';
-import Animated, {
-  useAnimatedProps,
-  type SharedValue,
-} from 'react-native-reanimated';
 import Svg, { Defs, G, Mask, Path, Rect } from 'react-native-svg';
 
+import { SHAPE_MASK_ID } from '../../constants/svgIds';
 import type { Shape } from '../types';
 
 const ROOT_STYLE = { position: 'absolute' as const, top: 0, left: 0 };
 
-const MASK_ID = 'arnic-shape-mask';
 const PATH_VIEWBOX = 24;
 
-const AnimatedG = Animated.createAnimatedComponent(G);
-
-interface BaseProps {
+interface ShapeMaskProps {
   shape: Shape;
   /** Crop-area dimensions — pins the outer Svg coordinate system. */
   containerWidth: number;
   containerHeight: number;
+  frameLeft: number;
+  frameTop: number;
+  frameWidth: number;
+  frameHeight: number;
   dimColor: string;
   borderColor: string;
   borderWidth: number;
 }
 
-interface StaticCoords {
-  frameLeft: number;
-  frameTop: number;
-  frameWidth: number;
-  frameHeight: number;
-}
-
-interface AnimatedCoords {
-  rectX: SharedValue<number>;
-  rectY: SharedValue<number>;
-  rectW: SharedValue<number>;
-  rectH: SharedValue<number>;
-}
-
-type ShapeMaskProps = BaseProps & (StaticCoords | AnimatedCoords);
-
-const staticTransform = (c: StaticCoords) => [
-  { translateX: c.frameLeft },
-  { translateY: c.frameTop },
-  { scaleX: Math.max(0, c.frameWidth) / PATH_VIEWBOX },
-  { scaleY: Math.max(0, c.frameHeight) / PATH_VIEWBOX },
+const buildTransform = (props: ShapeMaskProps) => [
+  { translateX: props.frameLeft },
+  { translateY: props.frameTop },
+  { scaleX: Math.max(0, props.frameWidth) / PATH_VIEWBOX },
+  { scaleY: Math.max(0, props.frameHeight) / PATH_VIEWBOX },
 ];
 
 const renderShape = (
@@ -81,10 +60,6 @@ const renderShape = (
   return shape.mask(PATH_VIEWBOX);
 };
 
-const isAnimated = (
-  props: ShapeMaskProps
-): props is BaseProps & AnimatedCoords => 'rectX' in props;
-
 export const ShapeMask: React.FC<ShapeMaskProps> = (props) => {
   const {
     shape,
@@ -95,24 +70,7 @@ export const ShapeMask: React.FC<ShapeMaskProps> = (props) => {
     borderWidth,
   } = props;
   const hasPath = typeof shape.mask === 'string';
-
-  const animatedProps = useAnimatedProps(() => {
-    'worklet';
-    if (!('rectX' in props)) {
-      return { transform: [] };
-    }
-    const c = props as AnimatedCoords;
-    return {
-      transform: [
-        { translateX: c.rectX.value },
-        { translateY: c.rectY.value },
-        { scaleX: Math.max(0, c.rectW.value) / PATH_VIEWBOX },
-        { scaleY: Math.max(0, c.rectH.value) / PATH_VIEWBOX },
-      ],
-    };
-  });
-
-  const animated = isAnimated(props);
+  const transform = buildTransform(props);
 
   return (
     <Svg
@@ -124,7 +82,7 @@ export const ShapeMask: React.FC<ShapeMaskProps> = (props) => {
       preserveAspectRatio="none"
     >
       <Defs>
-        <Mask id={MASK_ID}>
+        <Mask id={SHAPE_MASK_ID}>
           <Rect
             x="0"
             y="0"
@@ -132,15 +90,7 @@ export const ShapeMask: React.FC<ShapeMaskProps> = (props) => {
             height={containerHeight}
             fill="white"
           />
-          {animated ? (
-            <AnimatedG animatedProps={animatedProps}>
-              {renderShape(shape, { fill: 'black' })}
-            </AnimatedG>
-          ) : (
-            <G transform={staticTransform(props)}>
-              {renderShape(shape, { fill: 'black' })}
-            </G>
-          )}
+          <G transform={transform}>{renderShape(shape, { fill: 'black' })}</G>
         </Mask>
       </Defs>
       <Rect
@@ -149,18 +99,10 @@ export const ShapeMask: React.FC<ShapeMaskProps> = (props) => {
         width={containerWidth}
         height={containerHeight}
         fill={dimColor}
-        mask={`url(#${MASK_ID})`}
+        mask={`url(#${SHAPE_MASK_ID})`}
       />
-      {hasPath && animated && (
-        <AnimatedG animatedProps={animatedProps}>
-          {renderShape(shape, {
-            stroke: borderColor,
-            strokeWidth: borderWidth,
-          })}
-        </AnimatedG>
-      )}
-      {hasPath && !animated && (
-        <G transform={staticTransform(props)}>
+      {hasPath && (
+        <G transform={transform}>
           {renderShape(shape, {
             stroke: borderColor,
             strokeWidth: borderWidth,

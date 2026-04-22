@@ -715,4 +715,16 @@ describe('ImageCropperModal', () => {
       );
     });
   });
+
+  describe('shape-aware resize gesture', () => {
+    it('renders the full-area gesture for an aspect-locked shape', () => {
+      const { queryByTestId } = renderModal({ shapes: [squareShape] });
+      expect(queryByTestId('pan-zoom-full-area-resize')).toBeTruthy();
+    });
+
+    it('does not render for free-aspect / shapeless configs', () => {
+      const { queryByTestId } = renderModal();
+      expect(queryByTestId('pan-zoom-full-area-resize')).toBeNull();
+    });
+  });
 });

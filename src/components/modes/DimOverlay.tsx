@@ -17,7 +17,7 @@ const resolveBorder = ({
   frameStyle,
   defaultBorderColor,
 }: BorderResolverArgs) => ({
-  borderWidth: frameStyle?.borderWidth ?? 1,
+  borderWidth: frameStyle?.borderWidth ?? 2,
   borderColor: frameStyle?.borderColor ?? defaultBorderColor,
   borderRadius: frameStyle?.borderRadius,
 });

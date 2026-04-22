@@ -101,12 +101,19 @@ const CONFIGS = {
   'circle-only': {
     shapes: [circleShape],
   },
-  // Tints Pan-Zoom's dim-area gesture zones so integrators can see the
-  // hit regions while tuning `outlineInset` on custom shapes.
-  'debug-zones': {
+  // Amber tint in the Pan-Zoom resize hit region (the area outside
+  // the shape silhouette, where the resize gesture activates).
+  'debug-tint': {
     shapes: builtInShapes,
     defaultShape: 'heart',
     debug: true,
+  },
+  // Same amber tint, plus a 15×15 pointInShape sample grid overlay.
+  // Heavier on Android — use when authoring a new shape's hit-test.
+  'debug-grid': {
+    shapes: builtInShapes,
+    defaultShape: 'heart',
+    debug: 'grid',
   },
   // Regular rect crop but emitted as PNG. No mask, no Skia involved.
   'png-output': {
@@ -298,9 +305,15 @@ export default function App() {
         <View style={styles.row}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => launch('debug-zones')}
+            onPress={() => launch('debug-tint')}
           >
-            <Text style={styles.buttonText}>Debug gesture zones</Text>
+            <Text style={styles.buttonText}>Debug: hit-region tint</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => launch('debug-grid')}
+          >
+            <Text style={styles.buttonText}>Debug: pointInShape grid</Text>
           </TouchableOpacity>
         </View>
 

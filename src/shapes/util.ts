@@ -1,15 +1,13 @@
 import { DEFAULT_FRAME_PADDING } from '../constants/cropping';
-import { rectangleShape } from './builtins';
 import type { Shape } from './types';
 
 /**
- * True when `shape` defines a non-rectangular silhouette that should
- * render as an SVG cutout instead of the four-rectangle dim overlay.
- * Covers both string-path and function-form masks — the cutout
- * renderer handles either.
+ * True when `shape` needs the SVG-cutout dim renderer. Bbox-filling
+ * shapes (`fillsBbox: true`) return `false` — callers route them to
+ * the cheaper four-rectangle dim overlay.
  */
 export const isShapedOverlay = (shape: Shape | undefined): boolean =>
-  shape !== undefined && shape.id !== rectangleShape.id;
+  shape !== undefined && shape.fillsBbox !== true;
 
 /**
  * True when the output pipeline can post-process a crop with the
