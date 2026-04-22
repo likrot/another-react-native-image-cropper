@@ -52,4 +52,55 @@ export interface Shape {
    * that far inward.
    */
   outlineInset?: number | { x: number; y: number };
+  /**
+   * Hit-test worklet. Given a touch in bbox-local coordinates,
+   * returns `true` iff the point lies inside the silhouette.
+   *
+   * Parameters:
+   * - `x`, `y` — touch position with origin at the frame bbox
+   *   top-left, in the same pixel units as `w`/`h`.
+   * - `w`, `h` — current bbox dimensions. The caller passes the
+   *   **live** frame size on every touch, so the hit region tracks
+   *   the crop frame as the user resizes it. Do NOT close over a
+   *   size captured at shape-definition time.
+   *
+   * **Must be a Reanimated worklet** — annotate the function body
+   * with the `'worklet'` directive so the Reanimated Babel plugin
+   * inlines it onto the UI thread. Calls from non-worklet JS
+   * context will throw at the first invocation. See
+   * https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/worklets/.
+   *
+   * Inside the worklet, normalize `(x, y)` into your shape's native
+   * coordinate system before testing. Built-in shapes use the 24×24
+   * Lucide viewBox, e.g.
+   *
+   * ```ts
+   * pointInShape: (x, y, w, h) => {
+   *   'worklet';
+   *   const u = (x / w) * 24;  // viewBox-local
+   *   const v = (y / h) * 24;
+   *   // ...closed-form test against constants in 24-viewBox space
+   *   return u * u + v * v <= 144;
+   * }
+   * ```
+   *
+   * Restrictions inside the worklet: only synchronous, pure JS; no
+   * `console.log` (use `runOnJS` if needed); no module-scope
+   * bindings that weren't captured at plugin-time. See
+   * `src/shapes/builtins.ts` for reference implementations of
+   * circle, heart, and star.
+   *
+   * Omit for shapes that fill their bounding box (rectangle,
+   * square); the consumer falls back to a bbox test.
+   */
+  pointInShape?: (x: number, y: number, w: number, h: number) => boolean;
+  /**
+   * Optimization hint: when `true`, the silhouette equals the
+   * bounding box (rectangle, square, …). The crop UI skips the
+   * SVG-mask render path and uses four `Animated.View` dim strips
+   * instead — materially cheaper during resize, especially on
+   * Android. Leave undefined for curved silhouettes; set `true` only
+   * when the shape literally fills its bbox.
+   */
+  fillsBbox?: boolean;
 }

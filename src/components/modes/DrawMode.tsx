@@ -23,12 +23,7 @@ import { DIM_COLOR } from '../../constants/cropping';
 import { defaultTheme } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useCropGestures } from '../../hooks/useCropGestures';
-import {
-  ShapeMask,
-  isShapedOverlay,
-  resolveFramePadding,
-  type Shape,
-} from '../../shapes';
+import { isShapedOverlay, resolveFramePadding, type Shape } from '../../shapes';
 import type { FrameStyle, HandleStyle, Size } from '../../types';
 import {
   centerRect,
@@ -38,6 +33,7 @@ import {
 } from '../../utils/cropMath';
 import { CornerHandle } from './CornerHandle';
 import { AnimatedDimOverlay } from './DimOverlay';
+import { ShapeCutoutLayer } from './ShapeCutoutLayer';
 import type { CropModeHandle } from './types';
 
 // Semi-transparent tint overlaid on the rect interior when `debug` is
@@ -82,10 +78,10 @@ export interface DrawModeProps {
    */
   framePadding?: number;
   /**
-   * Active shape. When provided and its id isn't `'rectangle'`, the
-   * dim overlay is rendered via `ShapeMask` (SVG cut-out that tracks
-   * the rect shared values). Undefined or rectangle falls back to the
-   * four-rectangle dim overlay.
+   * Active shape. Curved silhouettes render via `ShapeCutoutLayer`
+   * (SVG cutout tracking the rect). Bbox-filling shapes (rectangle,
+   * square, or any `fillsBbox: true`) use the cheap four-rectangle
+   * dim overlay.
    */
   shape?: Shape;
   /** Visual overrides for the selection rectangle border. */
@@ -93,11 +89,13 @@ export interface DrawModeProps {
   /** Visual overrides for the corner drag handles. */
   handleStyle?: HandleStyle;
   /**
-   * Development hint — when `true`, the rect's interior move handle
+   * Development hint — when truthy, the rect's interior move handle
    * renders with a translucent tint so its hit region is visible.
-   * No effect on production UX. Default `false`.
+   * Mirrors the type on the modal's `debug` prop; the string variants
+   * (`'tint'`, `'grid'`) are Pan-Zoom-specific but still count as "on"
+   * here. No effect on production UX. Default `false`.
    */
-  debug?: boolean;
+  debug?: boolean | 'tint' | 'grid';
   /**
    * Screen-space Y offset of the crop area's top edge — the parent
    * modal's `insets.top`. Used by the move gesture to translate
@@ -522,17 +520,15 @@ export const DrawMode = forwardRef<CropModeHandle, DrawModeProps>(
         </GestureDetector>
 
         {useShapeMask && shape ? (
-          <ShapeMask
+          <ShapeCutoutLayer
             shape={shape}
-            containerWidth={containerSize.width}
-            containerHeight={containerSize.height}
             rectX={rectX}
             rectY={rectY}
             rectW={rectW}
             rectH={rectH}
             dimColor={DIM_COLOR}
             borderColor={frameStyle?.borderColor ?? theme.colors.rectBorder}
-            borderWidth={frameStyle?.borderWidth ?? 1}
+            borderWidth={frameStyle?.borderWidth ?? 2}
           />
         ) : (
           <AnimatedDimOverlay

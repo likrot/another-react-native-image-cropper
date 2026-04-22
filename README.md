@@ -55,10 +55,10 @@ import {
 
 A locked aspect ratio drives different interactions per mode:
 
-- **Pan-Zoom** — the image pans/pinches as normal inside the shape; outside
-  (on the dim area) pan outward or pinch to grow the mask, pan inward or
-  pinch in to shrink. The shape stays centered and the aspect ratio is
-  preserved.
+- **Pan-Zoom** — one finger inside the shape pans the image; one finger
+  outside the shape silhouette resizes the crop frame (radial-from-center).
+  Two-finger pinch zooms the image inside the shape and resizes the crop
+  outside. The shape stays centered and the aspect ratio is preserved.
 - **Draw** — corner-handle drag resizes omnidirectionally so the shape
   stays geometrically correct. Two-finger pan/pinch moves the image
   underneath.
@@ -75,6 +75,29 @@ Both modes render the dim overlay as an SVG `<Mask>` with the shape path
 as a cutout. In Draw mode the cutout follows the selection rect in
 real time as the user drags a corner. In Pan-Zoom it tracks the mask's
 gesture-driven scale.
+
+#### Shape-aware hit testing
+
+Pan-Zoom needs to decide *per touch* whether the finger landed inside
+the shape silhouette (→ pans the image) or outside (→ resizes the crop
+frame). Each `Shape` ships a tiny worklet, `pointInShape(x, y, w, h)`,
+that runs on the UI thread. `(x, y)` is the touch
+in bbox-local coordinates; `w` and `h` are the **live** frame
+dimensions, so the hit region scales automatically as the user resizes.
+
+Built-ins decompose their silhouettes into closed-form primitives, zero allocation per
+touch, pixel-stable:
+
+<div align="center">
+  <img src="./docs/media/hit-test-geometry.svg" alt="Per-shape hit-test geometry: circle disc, heart two lobes ∪ V-triangle, star 10-vertex polygon" width="860" />
+</div>
+
+Rectangle and square omit `pointInShape` and fall back to a bbox test
+(correct — they fill their bbox). A custom `Shape` can either provide
+its own worklet (must be annotated `'worklet'`) or omit the field and
+accept the bbox fallback. See [`src/shapes/builtins.ts`](./src/shapes/builtins.ts)
+for reference implementations, and flip `debug: 'grid'` to visualise
+your worklet's output live (green / red dot per grid sample).
 
 Built-in shape paths are sourced from [Lucide](https://lucide.dev) (ISC). See [NOTICE](./NOTICE) for attribution.
 
@@ -277,14 +300,16 @@ and for custom shapes that use a function-form mask.
 | `showFooter?` | `boolean` | Hide the instruction/error pill. Default `true`. |
 | `frameStyle?` | `FrameStyle` | Border width / color / radius overrides. |
 | `handleStyle?` | `HandleStyle` | Draw-mode corner handle — arm length / thickness / color / hit size. |
-| `debug?` | `boolean` | Tints interaction hit regions, Pan-Zoom's dim-area resize zones and Draw's rect-interior move handle, so they're visible. Off by default. |
+| `debug?` | `boolean \| 'tint' \| 'grid'` | Visualizes interaction hit regions. `true` / `'tint'` — amber tint in the outside-silhouette region (Pan-Zoom) and tinted move handle (Draw). Cheap. `'grid'` — additionally samples `Shape.pointInShape(...)` on a 15×15 grid inside the live frame bbox, rendering green (inside) / red (outside) markers. Useful when authoring a new shape; heavier on Android. Off by default. |
 | `renderToolbar?` | `(p: ToolbarRenderProps) => ReactNode` | Full toolbar replacement. |
 | `renderFooter?` | `(p: FooterRenderProps) => ReactNode` | Full footer replacement. |
 
 <div align="center">
-  <img src="./docs/media/debug-zones.png" alt="Debug mode tinting the four Pan-Zoom dim-area gesture zones" width="260" />
+  <img src="./docs/media/debug-tint.png" alt="Debug mode 'tint': amber tint outside the shape silhouette, covering the Pan-Zoom resize gesture region" width="260" />
+  &nbsp;&nbsp;
+  <img src="./docs/media/debug-grid.png" alt="Debug mode 'grid': amber tint plus a sample grid of green (inside) and red (outside) dots visualizing Shape.pointInShape across the live frame" width="260" />
   <br />
-  <em><code>debug: true</code> - the four Pan-Zoom dim-area resize zones tinted red / green / blue / yellow so hit regions are visible while tuning.</em>
+  <em><code>debug: true</code> / <code>'tint'</code> (left) - amber tint in the outside-silhouette region (where the Pan-Zoom resize gesture activates). <code>debug: 'grid'</code> (right) - tint plus a sample grid of <code>Shape.pointInShape</code> results (green = inside, red = outside) for worklet ground-truth when authoring new shapes.</em>
 </div>
 
 <div align="center">
@@ -336,7 +361,6 @@ one:
 - [ ] **Free-form drawing mode** - user traces a custom crop boundary by hand.
 - [ ] **Rotation** - rotate the source image before cropping.
 - [ ] **Aspect ratio presets** - 16:9, 4:3, etc., independent of shapes.
-- [ ] **Better coverage for areas allowing shape manipulation** - improve hit regions and interaction zones for more precise adjustments.
 
 ## Credits
 

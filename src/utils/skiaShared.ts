@@ -116,7 +116,7 @@ const CSS_COLOR_KEYWORDS = new Set([
 
 const CSS_COLOR_PATTERN = /^(#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\()/;
 
-export function assertColor(value: string, context: string): string {
+function assertColor(value: string, context: string): string {
   if (CSS_COLOR_KEYWORDS.has(value.toLowerCase())) return value;
   if (CSS_COLOR_PATTERN.test(value)) return value;
   throw new Error(
